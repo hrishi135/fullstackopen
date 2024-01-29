@@ -1,13 +1,15 @@
 const blogsRouter = require('express').Router()
 const Blog = require('../models/blog')
+// const User = require('../models/user')
+const jwt = require('jsonwebtoken')
 
 blogsRouter.get('/', async (request, response) => {
-  const blog = await Blog.find({})
+  const blog = await Blog.find({}).populate('user', { username: 1, name: 1 })
   response.json(blog)
 })
 
 blogsRouter.get('/:id', async (request, response) => {
-  const blog = await Blog.findById(request.params.id)
+  const blog = await Blog.findById(request.params.id).populate('user', { username: 1, name: 1 })
   if (blog) {
     response.json(blog)
   } else {
@@ -17,6 +19,13 @@ blogsRouter.get('/:id', async (request, response) => {
 
 blogsRouter.post('/', async (request, response) => {
   const blog = request.body
+  // eslint-disable-next-line no-undef
+  const decodedToken = jwt.verify(request.token, process.env.SECRET)
+  if (!decodedToken.id) {
+    return response.status(401).json({ error: 'token invalid' })
+  }
+
+  const user = request.user
 
   if (!blog.title || !blog.author) {
     return response.status(400).json({
@@ -28,11 +37,14 @@ blogsRouter.post('/', async (request, response) => {
     title: blog.title,
     author: blog.author,
     url: blog.url || null,
-    likes: blog.likes || 0
+    likes: blog.likes || 0,
+    user: user.id
   })
 
-  const result = await newBlog.save()
-  response.status(201).json(result)
+  const savedBlog = await newBlog.save()
+  user.blogs = user.blogs.concat(savedBlog._id)
+  await user.save()
+  response.status(201).json(savedBlog)
 
 })
 
@@ -50,8 +62,23 @@ blogsRouter.put('/:id', async (request, response) => {
 })
 
 blogsRouter.delete('/:id', async (request, response) => {
-  await Blog.findByIdAndDelete(request.params.id)
-  response.status(204).end()
+
+  // eslint-disable-next-line no-undef
+  const decodedToken = jwt.verify(request.token, process.env.SECRET)
+  if (!decodedToken.id) {
+    return response.status(401).json({ error: 'token invalid' })
+  }
+
+  const requestingUser = request.user
+  const blogUser = await Blog.findById(request.params.id)
+
+  if (requestingUser._id.toString() === blogUser.user.toString()) {
+    await Blog.findByIdAndDelete(request.params.id)
+    response.status(204).end()
+  } else {
+    return response.status(401).json({ error: 'Not Authorized' })
+  }
+
 })
 
 module.exports = {

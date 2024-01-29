@@ -1,13 +1,25 @@
 const mongoose = require('mongoose')
 const supertest = require('supertest')
-const app = require('../index')
+const app = require('../app')
 const Blog = require('../models/blog')
 const helper = require('./test_helper')
+const jwt = require('jsonwebtoken')
 
 const api = supertest(app)
+let token = ''
+let cleantoken = ''
 
 beforeEach(async () => {
   await Blog.deleteMany({})
+  const user = {
+    username: 'root',
+    password: 'sekret'
+  }
+  const res = await api.post('/api/login')
+    .send(user)
+    .expect('Content-Type', /application\/json/)
+  token = 'bearer ' + res.body.token
+  cleantoken = res.body.token
 
   const blogObjects = helper.listWithManyBlogs
     .map(blog => new Blog(blog))
@@ -64,10 +76,12 @@ describe('addition of a single blog', () => {
       author: 'Test Author 1',
       url: 'testurl1.xyz',
       likes: 5,
+      user: '65b5d67166831d375dff0cb5'
     }
 
     await api.post('/api/blogs')
       .send(newBlog)
+      .set( 'authorization', token )
       .expect(201)
       .expect('Content-Type', /application\/json/)
 
@@ -82,10 +96,12 @@ describe('addition of a single blog', () => {
       title: 'Test Title 2',
       author: 'Test Author 2',
       url: 'testurl2.xyz',
+      user: '65b5d67166831d375dff0cb5'
     }
 
     await api.post('/api/blogs')
       .send(newBlog)
+      .set( 'authorization', token )
       .expect(201)
       .expect('Content-Type', /application\/json/)
 
@@ -102,6 +118,7 @@ describe('addition of a single blog', () => {
 
     await api.post('/api/blogs')
       .send(newBlog)
+      .set( 'authorization', token )
       .expect(400)
   })
 })
@@ -146,9 +163,59 @@ describe('update a blog', () => {
 
 describe('deletion of a single blog', () => {
   test('delete a single blog', async () => {
-    const before = await helper.blogsInDb()
-    await api.delete(`/api/blogs/${before[0].id}`)
+
+    // eslint-disable-next-line no-undef
+    const user = jwt.verify(cleantoken, process.env.SECRET)
+
+    const blog = new Blog({
+      title: 'Test Title 3',
+      author: 'Test Author 3',
+      url: 'testurl2.xyz',
+      user: user.id
+    })
+    await blog.save()
+
+    await api.delete(`/api/blogs/${blog._id.toString()}`)
+      .set( 'authorization', token )
       .expect(204)
+  })
+
+  test('fails with status code 401 if token is not provided', async () => {
+
+    // eslint-disable-next-line no-undef
+    const user = jwt.verify(cleantoken, process.env.SECRET)
+
+    const blog = new Blog({
+      title: 'Test Title 3',
+      author: 'Test Author 3',
+      url: 'testurl2.xyz',
+      user: user.id
+    })
+    await blog.save()
+
+    const result = await api.delete(`/api/blogs/${blog._id.toString()}`)
+      .expect(401)
+
+    console.log(result)
+  })
+
+  test('fails with status code 401 if token is not provided', async () => {
+
+    // eslint-disable-next-line no-undef
+    const user = jwt.verify(cleantoken, process.env.SECRET)
+
+    const blog = new Blog({
+      title: 'Test Title 3',
+      author: 'Test Author 3',
+      url: 'testurl2.xyz',
+      user: user.id
+    })
+    await blog.save()
+
+    const result = await api.delete(`/api/blogs/${blog._id.toString()}`)
+      .expect(401)
+
+    console.log(result)
   })
 })
 
