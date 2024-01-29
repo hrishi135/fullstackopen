@@ -31,28 +31,35 @@ const errorHandler = (error, request, response, next) => {
   next(error)
 }
 
-const tokenExtractor = (request, response, next) => {
+const getTokenFrom = request => {
   const authorization = request.get('authorization')
-  if (authorization && authorization.startsWith('bearer ')) {
-    request.token = authorization.replace('bearer ', '')
-  } else {
-    request.token = null
+  if (authorization && authorization.toLowerCase().startsWith('bearer ')) {
+    return authorization.substring(7)
+  }
+  return null
+}
+
+const tokenExtractor = (request, response, next) => {
+  request.token = getTokenFrom(request)
+  if (!request.token) {
+    return response.status(401).json({ error: 'token not provided' })
   }
   next()
 }
 
 const userExtractor = async (request, response, next) => {
-  if (!request.token || request.token === null) {
-    next()
-  } else {
+  const token = getTokenFrom(request)
+
+  if (token) {
     // eslint-disable-next-line no-undef
-    const decodedToken = jwt.verify(request.token, process.env.SECRET)
+    const decodedToken = jwt.verify(token, process.env.SECRET)
     if (!decodedToken.id) {
-      request.user = null
+      return response.status(401).json({ error: 'token invalid' })
     }
     request.user = await User.findById(decodedToken.id)
-    next()
   }
+
+  next()
 }
 
 module.exports = {
