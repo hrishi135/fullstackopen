@@ -121,6 +121,22 @@ describe('addition of a single blog', () => {
       .set( 'authorization', token )
       .expect(400)
   })
+
+  test('fails with statuscode 401 if token is not provided', async () => {
+    const newBlog = {
+      title: 'Test Title 1',
+      author: 'Test Author 1',
+      url: 'testurl1.xyz',
+      likes: 5,
+      user: '65b5d67166831d375dff0cb5'
+    }
+
+    const response = await api.post('/api/blogs')
+      .send(newBlog)
+      .expect(401)
+      .expect('Content-Type', /application\/json/)
+    expect(response.res.statusMessage).toContain('Unauthorized')
+  })
 })
 
 describe('update a blog', () => {
@@ -193,30 +209,11 @@ describe('deletion of a single blog', () => {
     })
     await blog.save()
 
-    const result = await api.delete(`/api/blogs/${blog._id.toString()}`)
+    const response = await api.delete(`/api/blogs/${blog._id.toString()}`)
       .expect(401)
-
-    console.log(result)
+    expect(response.res.statusMessage).toContain('Unauthorized')
   })
 
-  test('fails with status code 401 if token is not provided', async () => {
-
-    // eslint-disable-next-line no-undef
-    const user = jwt.verify(cleantoken, process.env.SECRET)
-
-    const blog = new Blog({
-      title: 'Test Title 3',
-      author: 'Test Author 3',
-      url: 'testurl2.xyz',
-      user: user.id
-    })
-    await blog.save()
-
-    const result = await api.delete(`/api/blogs/${blog._id.toString()}`)
-      .expect(401)
-
-    console.log(result)
-  })
 })
 
 afterAll(async () => {
