@@ -20,10 +20,11 @@ blogsRouter.get('/:id', async (request, response) => {
 blogsRouter.post('/', middleware.userExtractor, middleware.tokenExtractor , async (request, response) => {
   const blog = request.body
   const user = request.user
+  console.log(blog)
 
   if (!blog.title || !blog.author) {
     return response.status(400).json({
-      error: 'content missing'
+      error: 'title or author field cant be empty'
     })
   }
 
