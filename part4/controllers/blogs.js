@@ -20,7 +20,6 @@ blogsRouter.get('/:id', async (request, response) => {
 blogsRouter.post('/', middleware.userExtractor, middleware.tokenExtractor , async (request, response) => {
   const blog = request.body
   const user = request.user
-  console.log(blog)
 
   if (!blog.title || !blog.author) {
     return response.status(400).json({
@@ -39,7 +38,8 @@ blogsRouter.post('/', middleware.userExtractor, middleware.tokenExtractor , asyn
   const savedBlog = await newBlog.save()
   user.blogs = user.blogs.concat(savedBlog._id)
   await user.save()
-  response.status(201).json(savedBlog)
+  const res = await savedBlog.populate('user', { username: 1, name: 1 })
+  response.status(201).json(res)
 
 })
 
@@ -52,16 +52,19 @@ blogsRouter.put('/:id', async (request, response) => {
   if (!updatedBlog) {
     return response.status(404).json({ message: 'Item not found' })
   } else {
-    response.json(updatedBlog)
+    const res = await updatedBlog.populate('user', { username: 1, name: 1 })
+    response.json(res)
   }
 })
 
 blogsRouter.delete('/:id', middleware.userExtractor, middleware.tokenExtractor, async (request, response) => {
-  const requestingUser = request.user
+  const user = request.user
   const blogUser = await Blog.findById(request.params.id)
 
-  if (requestingUser._id.toString() === blogUser.user.toString()) {
+  if (user._id.toString() === blogUser.user.toString()) {
     await Blog.findByIdAndDelete(request.params.id)
+    user.blogs = user.blogs.filter(blog => blog.toString() !== request.params.id)
+    await user.save()
     response.status(204).end()
   } else {
     return response.status(401).json({ error: 'Not Authorized' })
