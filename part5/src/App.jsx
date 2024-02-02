@@ -137,11 +137,11 @@ const App = () => {
   )
 
   const blogList = () => (
-    <>
+    <div id='blogList'>
       {blogs.map(blog =>
-        <Blog key={blog.id} likeBlog={handleLikeBlog} deleteBlog={handleDelete} blog={blog} />
+        <Blog key={blog.id} username={user.username} likeBlog={handleLikeBlog} deleteBlog={handleDelete} blog={blog} />
       )}
-    </>
+    </div>
   )
 
   return (
