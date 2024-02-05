@@ -1,6 +1,6 @@
 import {useMutation, useQueryClient } from "@tanstack/react-query"
 import { createAnecdote } from "../requests"
-import { useNotificationDispatch } from "./NotificationContext"
+import { clearNotification, setNotification, useNotificationDispatch } from "./NotificationContext"
 
 const AnecdoteForm = () => {
   const queryClient = useQueryClient()
@@ -11,20 +11,13 @@ const AnecdoteForm = () => {
     onSuccess: (newAnecdote) => {
       const anecdotes = queryClient.getQueryData(['anecdotes'])
       queryClient.setQueryData(['anecdotes'], anecdotes.concat(newAnecdote))
-
-      dispatch({
-        type: 'SET',
-        payload: `anecdote '${newAnecdote.content}' added`
-      })
-      setTimeout(() => { dispatch({ type: 'CLEAR' }) }, 5000);
+      dispatch(setNotification(`anecdote '${newAnecdote.content}' added`))
+      setTimeout(() => { dispatch(clearNotification()) }, 5000);
     },
     
     onError: (error) => {
-      dispatch({
-        type: 'SET',
-        payload: error.message
-      })
-      setTimeout(() => { dispatch({ type: 'CLEAR' }) }, 5000);
+      dispatch(setNotification(error.message))
+      setTimeout(() => { dispatch(clearNotification()) }, 5000);
     }
   })
 

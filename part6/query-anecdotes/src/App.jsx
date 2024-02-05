@@ -2,7 +2,7 @@ import AnecdoteForm from './components/AnecdoteForm'
 import Notification from './components/Notification'
 import { getAnecdotes, updateAnecdote } from './requests'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useNotificationDispatch } from './components/NotificationContext'
+import { clearNotification, setNotification, useNotificationDispatch } from './components/NotificationContext'
 
 const App = () => {
   const queryClient = useQueryClient()
@@ -16,11 +16,8 @@ const App = () => {
         .sort((a, b) => b.votes - a.votes)
       queryClient.setQueryData(['anecdotes'], updatedData)
 
-      dispatch({
-        type: 'SET',
-        payload: `anecdote '${newAnecdote.content}' voted`
-      })
-      setTimeout(() => { dispatch({ type: 'CLEAR' }) }, 5000);
+      dispatch(setNotification(`anecdote '${newAnecdote.content}' voted`))
+      setTimeout(() => { dispatch(clearNotification()) }, 5000);
     },
   })
 
