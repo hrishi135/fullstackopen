@@ -1,27 +1,31 @@
 import { useEffect, useRef } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { Routes, Route } from 'react-router-dom'
-import Blog from './components/Blog'
+import { Routes, Route, useMatch, Link, Navigate } from 'react-router-dom'
 import Notification from './components/Notification'
 import Togglable from './components/Togglable'
 import LoginForm from './components/LoginForm'
 import BlogForm from './components/BlogForm'
 import Users from './components/Users'
+import SingleUser from './components/SingleUser'
 import blogService from './services/blogs'
 import loginService from './services/login'
 import { setNotification, setError   } from './reducers/notificationReducer'
 import { setUser } from './reducers/loggedUserReducer'
-import { appendBlog, deleteBlog, fetchBlogs, likeBlog } from './reducers/blogsReducer'
+import { appendBlog, fetchBlogs } from './reducers/blogsReducer'
 import { fetchUsers } from './reducers/usersReducer'
 import './index.css'
+import SingleBlog from './components/SingleBlog'
 
 
 
 const App = () => {
   const user = useSelector(state => state.loggedUser)
   const blogs = useSelector(state => state.blogs)
+  const userList = useSelector(state => state.users)
   const blogFormRef = useRef()
   const dispatch = useDispatch()
+  const userMatch = useMatch('/users/:id')
+  const blogMatch = useMatch('/blogs/:id')
 
   useEffect(() => {
     dispatch(fetchBlogs())
@@ -36,7 +40,15 @@ const App = () => {
     }
   }, [])
 
-  if (!blogs) { return null }
+  if (!blogs) return null
+  if (!userList) return null
+
+  const singleUser = userMatch
+    ? userList.find(user => user.id === userMatch.params.id)
+    : null
+  const singleBlog = blogMatch
+    ? blogs.find(blog => blog.id === blogMatch.params.id)
+    : null
 
   const addBlog = async (blogObject) => {
     blogService.setToken(user.token)
@@ -49,32 +61,6 @@ const App = () => {
       dispatch(setError(error.response.data.error, 5))
     }
     blogFormRef.current.toggleVisibility()
-  }
-
-  const handleLikeBlog = async (blogObject) => {
-    blogService.setToken(user.token)
-
-    try {
-      const returnedBlog = await blogService.update(blogObject)
-      dispatch(likeBlog(returnedBlog))
-      dispatch(setNotification('blog liked', 5))
-    } catch (error) {
-      dispatch(setError(error.response.data.error, 5))
-    }
-  }
-
-  const handleDelete = async (blogObject) => {
-    blogService.setToken(user.token)
-
-    if (window.confirm(`Remove blog ${blogObject.title} ${blogObject.author}`)) {
-      try {
-        await blogService.remove(blogObject)
-        dispatch(deleteBlog(blogObject))
-        dispatch(setNotification('blog deleted', 5))
-      } catch (error) {
-        dispatch(setError(error.response.data.error, 5))
-      }
-    }
   }
 
   const handleLogin = async (credentials) => {
@@ -97,17 +83,6 @@ const App = () => {
     dispatch(setUser(null))
   }
 
-  const loginForm = () => {
-    return (
-      <>
-        <h2>Login</h2>
-        <Togglable buttonLabel='login'>
-          <LoginForm handleSubmit={handleLogin}/>
-        </Togglable>
-      </>
-    )
-  }
-
   const blogForm = () => (
     <Togglable buttonLabel='new blog' ref={blogFormRef}>
       <BlogForm createBlog={addBlog} />
@@ -116,29 +91,50 @@ const App = () => {
 
   const blogList = () => (
     <div id='blogList'>
+      <h2>blogs</h2>
+      <>{blogForm()}</>
       {blogs.map(blog =>
-        <Blog key={blog.id} username={user.username} likeBlog={handleLikeBlog} deleteBlog={handleDelete} blog={blog} />
+        <div key={blog.id}>
+          <Link to={`/blogs/${blog.id}`}>{blog.title}</Link>
+        </div>
       )}
     </div>
   )
 
+  const padding = { padding: 5 }
+
   return (
     <div>
 
+      <div style={{ backgroundColor: 'lightgray', padding: 5 }}>
+        <Link style={padding} to="/">blogs</Link>
+        <Link style={padding} to="/users">users</Link>
+        {user
+          ? <>{user.name} logged in
+            <button onClick={handleLogout}>
+            logout
+            </button></>
+          : <Link style={padding} to="/login">login</Link>
+        }
+      </div>
+
       <Notification />
 
-      {!user && loginForm()}
+      {!user &&
+      <Routes>
+        <Route path="/" element={<Navigate replace to="/login" /> } />
+        <Route path='/login' element={<LoginForm handleSubmit={handleLogin} />} />
+      </Routes>
+      }
       {user &&
       <div>
-        <h2>blogs</h2>
-        <p>{user.name} logged in
-          <button onClick={handleLogout}>
-            logout
-          </button>
-        </p>
         <Routes>
-          <Route path='/' element ={<>{blogForm()}{blogList()}</>}  />
-          <Route path='/users' element ={<><Users/></>}  />
+          <Route path='/' element ={<>{blogList()}</>}  />
+          <Route path="/login" element={<Navigate replace to="/" /> } />
+          <Route path='/blogs' element ={<>{blogList()}</>}  />
+          <Route path='/users' element ={<Users/>}  />
+          <Route path='/users/:id' element ={<SingleUser user={singleUser}/>}  />
+          <Route path='/blogs/:id' element ={<SingleBlog blog={singleBlog}/>}  />
         </Routes>
       </div>
       }
