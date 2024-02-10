@@ -1,25 +1,25 @@
 import { useState } from 'react'
-import { deleteBlog, likeBlog } from '../reducers/blogsReducer'
+import { deleteBlog, modifyBlog } from '../reducers/blogsReducer'
 import { setNotification, setError } from '../reducers/notificationReducer'
 import blogService from '../services/blogs'
 import { useDispatch, useSelector } from 'react-redux'
+import { useNavigate } from 'react-router-dom'
+import { deleteBlogFromUser } from '../reducers/usersReducer'
 
 const SingleBlog = ({ blog }) => {
   const user = useSelector(state => state.loggedUser)
   const [newComment, setNewComment] = useState('')
-  const [comments, setComments] = useState([])
   const dispatch = useDispatch()
+  const navigate = useNavigate()
 
   if (!blog) return null
-
-
 
   const handleLikeBlog = async (blogObject) => {
     blogService.setToken(user.token)
 
     try {
       const returnedBlog = await blogService.update(blogObject)
-      dispatch(likeBlog(returnedBlog))
+      dispatch(modifyBlog(returnedBlog))
       dispatch(setNotification('blog liked', 5))
     } catch (error) {
       dispatch(setError(error.response.data.error, 5))
@@ -33,11 +33,30 @@ const SingleBlog = ({ blog }) => {
       try {
         await blogService.remove(blogObject)
         dispatch(deleteBlog(blogObject))
+        dispatch(deleteBlogFromUser(blogObject))
         dispatch(setNotification('blog deleted', 5))
+        navigate('/')
       } catch (error) {
         dispatch(setError(error.response.data.error, 5))
       }
     }
+  }
+
+  const addCommentClick = async (e) => {
+    e.preventDefault()
+
+    try {
+      const returnedBlog = await blogService.addComment({
+        id: blog.id,
+        comment: newComment
+      })
+      dispatch(modifyBlog(returnedBlog))
+      dispatch(setNotification('comment added', 5))
+    } catch (error) {
+      dispatch(setError(error.response.data.error, 5))
+    }
+
+    setNewComment('')
   }
 
   const handleLikeClick = () => {
@@ -47,18 +66,13 @@ const SingleBlog = ({ blog }) => {
       likes: blog.likes + 1,
       author: blog.author,
       title: blog.title,
+      comments: blog.comments,
       url: blog.url
     })
   }
 
   const handleDeleteClick = () => {
     handleDelete(blog)
-  }
-
-  const addCommentClick = (e) => {
-    e.preventDefault()
-    setComments(comments.concat(newComment))
-    setNewComment('')
   }
 
   return (
@@ -90,7 +104,7 @@ const SingleBlog = ({ blog }) => {
       </form>
 
       <ul>
-        {comments.map(comment =>
+        {blog.comments.map(comment =>
           <li key={comment}>
             {comment}
           </li>)}

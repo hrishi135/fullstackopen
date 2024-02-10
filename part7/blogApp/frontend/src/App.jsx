@@ -8,10 +8,8 @@ import BlogForm from './components/BlogForm'
 import Users from './components/Users'
 import SingleUser from './components/SingleUser'
 import blogService from './services/blogs'
-import loginService from './services/login'
-import { setNotification, setError   } from './reducers/notificationReducer'
 import { setUser } from './reducers/loggedUserReducer'
-import { appendBlog, fetchBlogs } from './reducers/blogsReducer'
+import { fetchBlogs } from './reducers/blogsReducer'
 import { fetchUsers } from './reducers/usersReducer'
 import './index.css'
 import SingleBlog from './components/SingleBlog'
@@ -50,33 +48,6 @@ const App = () => {
     ? blogs.find(blog => blog.id === blogMatch.params.id)
     : null
 
-  const addBlog = async (blogObject) => {
-    blogService.setToken(user.token)
-
-    try {
-      const returnedBlog = await blogService.create(blogObject)
-      dispatch(appendBlog(returnedBlog))
-      dispatch(setNotification('blog added', 5))
-    } catch (error) {
-      dispatch(setError(error.response.data.error, 5))
-    }
-    blogFormRef.current.toggleVisibility()
-  }
-
-  const handleLogin = async (credentials) => {
-    event.preventDefault()
-
-    try {
-      const user = await loginService.login(credentials)
-      window.localStorage.setItem( 'loggedUser', JSON.stringify(user))
-      blogService.setToken(user.token)
-      dispatch(setUser(user))
-      dispatch(setNotification('logged in', 5))
-    } catch (exception) {
-      dispatch(setError('Wrong username or password', 5))
-    }
-  }
-
   const handleLogout = () => {
     window.localStorage.removeItem('loggedUser')
     blogService.setToken(null)
@@ -85,7 +56,7 @@ const App = () => {
 
   const blogForm = () => (
     <Togglable buttonLabel='new blog' ref={blogFormRef}>
-      <BlogForm createBlog={addBlog} />
+      <BlogForm />
     </Togglable>
   )
 
@@ -123,7 +94,7 @@ const App = () => {
       {!user &&
       <Routes>
         <Route path="/" element={<Navigate replace to="/login" /> } />
-        <Route path='/login' element={<LoginForm handleSubmit={handleLogin} />} />
+        <Route path='/login' element={<LoginForm />} />
       </Routes>
       }
       {user &&

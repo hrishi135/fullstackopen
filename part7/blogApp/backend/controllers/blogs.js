@@ -32,6 +32,7 @@ blogsRouter.post('/', middleware.userExtractor, middleware.tokenExtractor , asyn
     author: blog.author,
     url: blog.url || null,
     likes: blog.likes || 0,
+    comments: [],
     user: user.id
   })
 
@@ -52,6 +53,20 @@ blogsRouter.put('/:id', async (request, response) => {
   if (!updatedBlog) {
     return response.status(404).json({ message: 'Item not found' })
   } else {
+    const res = await updatedBlog.populate('user', { username: 1, name: 1 })
+    response.json(res)
+  }
+})
+
+blogsRouter.post('/:id/comments', async (request, response) => {
+  const comment = request.body.comment
+  const updatedBlog = await Blog.findById(request.params.id)
+
+  if (!updatedBlog) {
+    return response.status(404).json({ message: 'Item not found' })
+  } else {
+    updatedBlog.comments = updatedBlog.comments.concat(comment)
+    updatedBlog.save()
     const res = await updatedBlog.populate('user', { username: 1, name: 1 })
     response.json(res)
   }
