@@ -65,29 +65,27 @@ const App = () => {
       <h2 className='mb-2'>blogs</h2>
       <>{blogForm()}</>
       {blogs.map(blog =>
-        <div key={blog.id}>
+        <div className='bg-slate-200 border-2 border-slate-400 px-2 py-1 my-2' key={blog.id}>
           <Link to={`/blogs/${blog.id}`}>{blog.title}</Link>
         </div>
       )}
     </div>
   )
 
-  const padding = { padding: 5 }
-
   return (
     <div className='mx-24 '>
 
-      <div className='bg-slate-400 p-2 '>
+      <div className='bg-slate-500 p-2 '>
 
-        <Link style={padding} to="/">blogs</Link>
-        <Link style={padding} to="/users">users</Link>
+        <Link className='p-2 text-blue-300' to="/">blogs</Link>
+        <Link className='p-2 text-blue-300' to="/users">users</Link>
         {user
           ? <>
             <i className='text-sm'>{user.name} logged in</i>
             <button onClick={handleLogout}>
             logout
             </button></>
-          : <Link style={padding} to="/login">login</Link>
+          : <Link className='p-2  text-blue-300' to="/login">login</Link>
         }
       </div>
 

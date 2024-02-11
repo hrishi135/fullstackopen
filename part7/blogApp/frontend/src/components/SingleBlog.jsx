@@ -105,7 +105,7 @@ const SingleBlog = ({ blog }) => {
 
       <ul>
         {blog.comments.map(comment =>
-          <li key={comment}>
+          <li className='bg-slate-200 px-2 border-2 border-slate-400 my-2' key={comment}>
             {comment}
           </li>)}
       </ul>
