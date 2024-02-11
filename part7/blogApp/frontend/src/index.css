@@ -1,17 +1,6 @@
-h2 {
-    color: green;
-    font-style: italic;
-}
-
 li {
     padding-top: 3px;
     font-size: 15px;
-}
-
-button {
-    background-color:deepskyblue;
-    border-radius: 5px;
-    margin-left: 10px;
 }
 
 form button {

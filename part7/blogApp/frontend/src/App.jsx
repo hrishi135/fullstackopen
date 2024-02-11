@@ -62,7 +62,7 @@ const App = () => {
 
   const blogList = () => (
     <div id='blogList'>
-      <h2>blogs</h2>
+      <h2 className='mb-2'>blogs</h2>
       <>{blogForm()}</>
       {blogs.map(blog =>
         <div key={blog.id}>
@@ -75,13 +75,15 @@ const App = () => {
   const padding = { padding: 5 }
 
   return (
-    <div>
+    <div className='mx-24 '>
 
-      <div style={{ backgroundColor: 'lightgray', padding: 5 }}>
+      <div className='bg-slate-400 p-2 '>
+
         <Link style={padding} to="/">blogs</Link>
         <Link style={padding} to="/users">users</Link>
         {user
-          ? <>{user.name} logged in
+          ? <>
+            <i className='text-sm'>{user.name} logged in</i>
             <button onClick={handleLogout}>
             logout
             </button></>
@@ -89,16 +91,16 @@ const App = () => {
         }
       </div>
 
-      <Notification />
 
       {!user &&
       <Routes>
-        <Route path="/" element={<Navigate replace to="/login" /> } />
+        <Route path="/*" element={<Navigate replace to="/login" /> } />
         <Route path='/login' element={<LoginForm />} />
       </Routes>
       }
       {user &&
-      <div>
+      <div className='p-4 bg-slate-100'>
+        <Notification />
         <Routes>
           <Route path='/' element ={<>{blogList()}</>}  />
           <Route path="/login" element={<Navigate replace to="/" /> } />

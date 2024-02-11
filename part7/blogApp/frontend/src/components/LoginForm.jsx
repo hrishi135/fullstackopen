@@ -1,10 +1,10 @@
-import PropTypes from 'prop-types'
 import { useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import loginService from '../services/login'
 import { setNotification, setError } from '../reducers/notificationReducer'
 import { setUser } from '../reducers/loggedUserReducer'
+// import '../css/output.css'
 
 
 const LoginForm = () => {
@@ -29,12 +29,13 @@ const LoginForm = () => {
   }
 
   return (
-    <div>
+    <div className='p-4 bg-slate-100'>
       <h2>Login</h2>
       <form onSubmit={handleLogin}>
         <div>
           username
           <input
+            className='ml-3'
             id='username'
             value={username}
             onChange={({ target }) => setUsername(target.value)}
@@ -43,20 +44,17 @@ const LoginForm = () => {
         <div>
           password
           <input
+            className='ml-3'
             id='password'
             type="password"
             value={password}
             onChange={({ target }) => setPassword(target.value)}
           />
         </div>
-        <button id='login-button' type="submit">login</button>
+        <button className='px-2 my-2' id='login-button'>login</button>
       </form>
     </div>
   )
-}
-
-LoginForm.propTypes = {
-  handleSubmit: PropTypes.func.isRequired
 }
 
 export default LoginForm

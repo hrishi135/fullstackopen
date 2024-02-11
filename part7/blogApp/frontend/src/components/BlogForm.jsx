@@ -66,7 +66,7 @@ const BlogForm = () => {
             className='ipUrl'
           />
         </div>
-        <button id='submit-button' type="submit">create</button>
+        <button className='button mt-2' id='submit-button'>create</button>
 
       </form>
     </>

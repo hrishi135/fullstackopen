@@ -93,14 +93,14 @@ const SingleBlog = ({ blog }) => {
         added by {blog.user.name}
       </div>
 
-      <h2>Comments </h2>
+      <h2 className='mt-10'>Comments </h2>
 
       <form onSubmit={addCommentClick}>
         <input
           value={newComment}
           onChange={({ target }) => setNewComment(target.value)}
         />
-        <button type="submit">add comment</button>
+        <button className='ml-3' >add comment</button>
       </form>
 
       <ul>
