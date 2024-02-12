@@ -1,0 +1,30 @@
+{
+  "name": "basic",
+  "version": "0.0.1",
+  "description": "exercise 9.1 to 9.7",
+  "main": "index.ts",
+  "scripts": {
+    "ts-node": "ts-node",
+    "bmi": "ts-node bmiCalculator.ts",
+    "exercise": "ts-node exerciseCalculator.ts",
+    "start": "ts-node index.ts",
+    "dev": "ts-node-dev index.ts",
+    "lint": "eslint --ext .ts .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Hrishikesh Hegishte",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "eslint": "^8.56.0",
+    "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "@types/eslint": "^8.56.2",
+    "express": "^4.18.2"
+  }
+}
