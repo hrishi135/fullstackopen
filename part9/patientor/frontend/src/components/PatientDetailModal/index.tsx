@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Diagnosis, Entry, HealthCheckRating, Patient } from "../../types";
+import { Diagnosis, Entry, EntryWithoutId, HealthCheckRating, Patient } from "../../types";
 import patientService from "../../services/patients";
 import diagnoseService from "../../services/diagnoses";
 import MaleIcon from '@mui/icons-material/Male';
@@ -9,6 +9,8 @@ import WorkIcon from '@mui/icons-material/Work';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import MedicalInformationIcon from '@mui/icons-material/MedicalInformation';
 import { green, orange, red, yellow } from "@mui/material/colors";
+import AddEntryForm from "./AddEntryForm";
+import axios from "axios";
 
 const assertNever = (value: never): never => {
   throw new Error(
@@ -86,6 +88,24 @@ const PatientDetailModal = ({ id }: { id: string }) => {
 
   if (!patientDetails) return null;
 
+  const submitNewEntry = async (entry: EntryWithoutId) => {
+    try {
+      const patient = await patientService.addEntry(entry, patientDetails.id);
+      setPatientDetails(patient);
+    } catch (e: unknown) {
+      if (axios.isAxiosError(e)) {
+        if (e?.response?.data && typeof e?.response?.data === "string") {
+          const message = e.response.data.replace('Something went wrong. Error: ', '');
+          console.error(message);
+        } else {
+          console.log("Unrecognized axios error");
+        }
+      } else {
+        console.error("Unknown error", e);
+      }
+    }
+  };
+
   return (
     <div>
       <h2>
@@ -96,6 +116,8 @@ const PatientDetailModal = ({ id }: { id: string }) => {
       </h2>
       <div>ssn: {patientDetails.ssn}</div>
       <div>occupation: {patientDetails.occupation}</div>
+
+      <AddEntryForm onSubmit={submitNewEntry} />
 
       <h3>entries</h3>
       <div>

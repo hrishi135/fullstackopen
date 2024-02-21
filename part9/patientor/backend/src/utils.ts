@@ -1,7 +1,11 @@
-import { DiagnosisEntry, Entry, EntryWithoutId, Gender, HealthCheckEntry, HospitalEntry, NewPatientEntry, OccupationalHealthcareEntry } from "./types";
+import { DiagnosisEntry, Entry, EntryWithoutId, Gender, HealthCheckRating , NewPatientEntry  } from "./types";
 
 const isString = (text: unknown): text is string => {
   return typeof text === 'string' || text instanceof String;
+};
+
+const isNumber = (text: unknown): text is number => {
+  return typeof text === 'number' || text instanceof Number;
 };
 
 const parseName = (name: unknown): string => {
@@ -73,13 +77,6 @@ const toNewPatientEntry = (object: unknown): NewPatientEntry => {
   throw new Error('Incorrect data: some fields are missing');
 };
 
-
-
-const parseId = (id: unknown): string => {
-  if (!isString(id)) { throw new Error('Incorrect or missing id: ' + id); }
-  return id;
-};
-
 const parseDescription = (desc: unknown): string => {
   if (!isString(desc)) { throw new Error('Incorrect or missing description: ' + desc); }
   return desc;
@@ -93,6 +90,14 @@ const parseSpecialist = (spec: unknown): string => {
 const parseCriteria = (crit: unknown): string => {
   if (!isString(crit)) { throw new Error('Incorrect or missing criteria: ' + crit); }
   return crit;
+};
+
+const parseHealthCheckRating = (rating: unknown): HealthCheckRating => {
+  if (isNumber(rating) && rating in HealthCheckRating) {
+    return rating;
+  } else {
+    throw new Error('Incorrect or missing health check rating: ' + rating);
+  }
 };
 
 const parseEmployerName = (name: unknown): string => {
@@ -115,11 +120,10 @@ export const toNewEntry = (object: unknown): EntryWithoutId => {
 
   if ('type' in object && isString(object.type) ) {
     if (object.type === 'HealthCheck') {
-      if ('healthCheckRating' in object && 'id' in object && 'description' in object && 'date' in object && 'specialist' in object) {
-        const newEntry: HealthCheckEntry = {
+      if ('healthCheckRating' in object && 'description' in object && 'date' in object && 'specialist' in object) {
+        const newEntry: EntryWithoutId = {
           type: "HealthCheck",
-          healthCheckRating: 1,
-          id: parseId(object.id),
+          healthCheckRating: parseHealthCheckRating(object.healthCheckRating),
           description: parseDescription(object.description),
           date: parseDate(object.date),
           specialist: parseSpecialist(object.specialist)
@@ -131,15 +135,14 @@ export const toNewEntry = (object: unknown): EntryWithoutId => {
       }
     }
     else if (object.type === 'Hospital') {
-      if ( 'id' in object && 'description' in object && 'date' in object && 'specialist' in object && 'discharge' in object
+      if ( 'description' in object && 'date' in object && 'specialist' in object && 'discharge' in object
       && typeof object.discharge === 'object' && object.discharge && 'date' in object.discharge && 'criteria' in object.discharge) {
-        const newEntry: HospitalEntry = {
+        const newEntry: EntryWithoutId = {
           type: "Hospital",
           discharge: {
             date: parseDate(object.discharge.date),
             criteria: parseCriteria(object.discharge.criteria)
           },
-          id: parseId(object.id),
           description: parseDescription(object.description),
           date: parseDate(object.date),
           specialist: parseSpecialist(object.specialist)
@@ -152,16 +155,15 @@ export const toNewEntry = (object: unknown): EntryWithoutId => {
     }
     else if (object.type === 'OccupationalHealthcare') {
 
-      if ( 'id' in object && 'description' in object && 'date' in object && 'specialist' in object && 'employerName' in object && 'sickLeave' in object && typeof object.sickLeave === 'object' && object.sickLeave && 'startDate' in object.sickLeave &&
+      if ( 'description' in object && 'date' in object && 'specialist' in object && 'employerName' in object && 'sickLeave' in object && typeof object.sickLeave === 'object' && object.sickLeave && 'startDate' in object.sickLeave &&
       'endDate' in object.sickLeave) {
-        const newEntry: OccupationalHealthcareEntry = {
+        const newEntry: EntryWithoutId = {
           type: "OccupationalHealthcare",
           sickLeave: {
             startDate: parseDate(object.sickLeave.startDate),
             endDate: parseDate(object.sickLeave.endDate)
           },
           employerName: parseEmployerName(object.employerName),
-          id: parseId(object.id),
           description: parseDescription(object.description),
           date: parseDate(object.date),
           specialist: parseSpecialist(object.specialist)
@@ -171,11 +173,10 @@ export const toNewEntry = (object: unknown): EntryWithoutId => {
         }
         return newEntry;
       }
-      else if ( 'id' in object && 'description' in object && 'date' in object && 'specialist' in object && 'employerName' in object) {
-        const newEntry: OccupationalHealthcareEntry = {
+      else if ('description' in object && 'date' in object && 'specialist' in object && 'employerName' in object) {
+        const newEntry: EntryWithoutId = {
           type: "OccupationalHealthcare",
           employerName: parseEmployerName(object.employerName),
-          id: parseId(object.id),
           description: parseDescription(object.description),
           date: parseDate(object.date),
           specialist: parseSpecialist(object.specialist)
