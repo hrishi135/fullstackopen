@@ -26,11 +26,11 @@ const EntryDetails = ({ entry }: { entry: Entry }) => {
           {entry.date}
           <MedicalInformationIcon color="action" />
           <div>
-            Health Check Rating : 
-            {entry.healthCheckRating === HealthCheckRating.CriticalRisk? <FavoriteIcon sx={{ color: red[500] }} />: null}
-            {entry.healthCheckRating === HealthCheckRating.HighRisk? <FavoriteIcon sx={{ color: orange[500] }} />: null}
-            {entry.healthCheckRating === HealthCheckRating.LowRisk? <FavoriteIcon sx={{ color: yellow[500] }} />: null}
-            {entry.healthCheckRating === HealthCheckRating.Healthy? <FavoriteIcon sx={{ color: green[500] }} />: null}
+            Health Check Rating :
+            {entry.healthCheckRating === HealthCheckRating.CriticalRisk ? <FavoriteIcon sx={{ color: red[500] }} /> : null}
+            {entry.healthCheckRating === HealthCheckRating.HighRisk ? <FavoriteIcon sx={{ color: orange[500] }} /> : null}
+            {entry.healthCheckRating === HealthCheckRating.LowRisk ? <FavoriteIcon sx={{ color: yellow[500] }} /> : null}
+            {entry.healthCheckRating === HealthCheckRating.Healthy ? <FavoriteIcon sx={{ color: green[500] }} /> : null}
           </div>
         </div>);
 
@@ -41,7 +41,7 @@ const EntryDetails = ({ entry }: { entry: Entry }) => {
           <MedicalInformationIcon color="action" />
           <div>
             Discharge :
-            <ul style={{marginTop: 0}}>
+            <ul style={{ marginTop: 0 }}>
               <li> date : {entry.discharge.date} </li>
               <li> criteria : {entry.discharge.criteria} </li>
             </ul>
@@ -50,14 +50,14 @@ const EntryDetails = ({ entry }: { entry: Entry }) => {
     case 'OccupationalHealthcare':
       return (
         <div>
-          {entry.date} 
-          <WorkIcon color="action" /> 
+          {entry.date}
+          <WorkIcon color="action" />
           <i>{entry.employerName}</i>
           <div>
             {entry.sickLeave &&
               <div>
                 Sick leave :
-                <ul style={{marginTop: 0}}>
+                <ul style={{ marginTop: 0 }}>
                   <li> start : {entry.sickLeave.startDate} </li>
                   <li> end : {entry.sickLeave.endDate} </li>
                 </ul>
@@ -71,10 +71,25 @@ const EntryDetails = ({ entry }: { entry: Entry }) => {
 
 };
 
+const Notification = ({ errorMessage }: { errorMessage: string | null }) => {
+  if (!errorMessage) return null;
+  else {
+    return (
+      <div style={{
+        display: 'block', padding: 10, backgroundColor: 'lightpink',
+        border: "2px solid red", marginTop: 10, color: 'darkred'
+      }}>
+        {errorMessage}
+      </div>
+    );
+  }
+};
+
 
 const PatientDetailModal = ({ id }: { id: string }) => {
   const [patientDetails, setPatientDetails] = useState<Patient | null>(null);
   const [diagnosesList, setDiagnosesList] = useState<Diagnosis[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchPatient = async () => {
@@ -88,6 +103,11 @@ const PatientDetailModal = ({ id }: { id: string }) => {
 
   if (!patientDetails) return null;
 
+  const Notify = (msg: string) => {
+    setError(msg);
+    setTimeout(() => {setError(null);}, 5000);
+  };
+
   const submitNewEntry = async (entry: EntryWithoutId) => {
     try {
       const patient = await patientService.addEntry(entry, patientDetails.id);
@@ -96,12 +116,12 @@ const PatientDetailModal = ({ id }: { id: string }) => {
       if (axios.isAxiosError(e)) {
         if (e?.response?.data && typeof e?.response?.data === "string") {
           const message = e.response.data.replace('Something went wrong. Error: ', '');
-          console.error(message);
+          Notify(message);
         } else {
-          console.log("Unrecognized axios error");
+          Notify("Unrecognized axios error");
         }
       } else {
-        console.error("Unknown error", e);
+        Notify("Unknown error" + e);
       }
     }
   };
@@ -117,7 +137,8 @@ const PatientDetailModal = ({ id }: { id: string }) => {
       <div>ssn: {patientDetails.ssn}</div>
       <div>occupation: {patientDetails.occupation}</div>
 
-      <AddEntryForm onSubmit={submitNewEntry} />
+      <Notification errorMessage={error} />
+      <AddEntryForm onSubmit={submitNewEntry} diagnosesList={diagnosesList} />
 
       <h3>entries</h3>
       <div>
