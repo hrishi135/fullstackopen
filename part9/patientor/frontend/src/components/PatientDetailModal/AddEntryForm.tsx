@@ -1,4 +1,4 @@
-import { SyntheticEvent, useState } from "react";
+import { Ref, SyntheticEvent, forwardRef, useImperativeHandle, useState } from "react";
 import { Diagnosis, EntryWithoutId, HealthCheckRating } from "../../types";
 import { Button, Input, MenuItem, OutlinedInput, Select, TextField } from "@mui/material";
 
@@ -8,9 +8,9 @@ interface Props {
   diagnosesList: Diagnosis[] | null
 }
 
-const AddEntryForm = ({ onSubmit, diagnosesList }: Props) => {
+const AddEntryForm = forwardRef(({ onSubmit, diagnosesList }: Props, ref: Ref<{clearData: () => void}>) => {
   const [visible, setVisible] = useState(false);
-  const [toggle, setToggle] = useState('show');
+  const [toggle, setToggle] = useState('add entry');
   const [type, setType] = useState<EntryWithoutId['type']>('HealthCheck');
   const [description, setDescription] = useState('');
   const [date, setDate] = useState('');
@@ -36,6 +36,12 @@ const AddEntryForm = ({ onSubmit, diagnosesList }: Props) => {
     setEndDate('');
     setDiagnosisCodes([]);
   };
+
+  useImperativeHandle(ref, () => {
+    return {
+      clearData
+    };
+  });
 
   const addEntry = (event: SyntheticEvent) => {
     event.preventDefault();
@@ -75,9 +81,7 @@ const AddEntryForm = ({ onSubmit, diagnosesList }: Props) => {
           endDate
         }
       });
-    } 
-
-    clearData();
+    }
   };
 
   const showWhenVisible = { display: visible ? '' : 'none' };
@@ -87,7 +91,7 @@ const AddEntryForm = ({ onSubmit, diagnosesList }: Props) => {
   };
   const handleShowClick = () => {
     toggleVisibility();
-    setToggle(toggle === 'show' ? 'cancel' : 'show');
+    setToggle(toggle === 'add entry' ? 'cancel' : 'add entry');
   };
 
   return (
@@ -235,7 +239,7 @@ const AddEntryForm = ({ onSubmit, diagnosesList }: Props) => {
       </div>
     </div>
   );
-};
+});
 
 
 export default AddEntryForm;

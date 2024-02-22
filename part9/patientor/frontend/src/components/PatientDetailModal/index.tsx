@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Diagnosis, Entry, EntryWithoutId, HealthCheckRating, Patient } from "../../types";
 import patientService from "../../services/patients";
 import diagnoseService from "../../services/diagnoses";
@@ -90,6 +90,7 @@ const PatientDetailModal = ({ id }: { id: string }) => {
   const [patientDetails, setPatientDetails] = useState<Patient | null>(null);
   const [diagnosesList, setDiagnosesList] = useState<Diagnosis[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const entryFormRef = useRef<{clearData: () => void}>(null);
 
   useEffect(() => {
     const fetchPatient = async () => {
@@ -112,6 +113,7 @@ const PatientDetailModal = ({ id }: { id: string }) => {
     try {
       const patient = await patientService.addEntry(entry, patientDetails.id);
       setPatientDetails(patient);
+      if (entryFormRef.current) {entryFormRef.current.clearData();}
     } catch (e: unknown) {
       if (axios.isAxiosError(e)) {
         if (e?.response?.data && typeof e?.response?.data === "string") {
@@ -138,7 +140,7 @@ const PatientDetailModal = ({ id }: { id: string }) => {
       <div>occupation: {patientDetails.occupation}</div>
 
       <Notification errorMessage={error} />
-      <AddEntryForm onSubmit={submitNewEntry} diagnosesList={diagnosesList} />
+      <AddEntryForm onSubmit={submitNewEntry} diagnosesList={diagnosesList} ref={entryFormRef} />
 
       <h3>entries</h3>
       <div>
