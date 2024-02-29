@@ -91,10 +91,15 @@ const App = () => {
 
 
       {!user &&
-      <Routes>
-        <Route path="/*" element={<Navigate replace to="/login" /> } />
-        <Route path='/login' element={<LoginForm />} />
-      </Routes>
+      <>
+        <div className='p-4 bg-slate-100'>
+          <Notification />
+        </div>
+        <Routes>
+          <Route path="/*" element={<Navigate replace to="/login" /> } />
+          <Route path='/login' element={<LoginForm />} />
+        </Routes>
+      </>
       }
       {user &&
       <div className='p-4 bg-slate-100'>
